@@ -17,17 +17,9 @@ import (
 	"sainsburys-stock/upload"
 )
 
+const IntervalRequest = 5
+
 func main() {
-
-	file, err := images.Download()
-	if err != nil {
-		log.Print(err)
-	}
-
-	err = upload.Uploader("123456.jpg", file)
-	if err != nil {
-		log.Print(err)
-	}
 
 	results, err := ReadData("productNames.csv")
 	if err != nil {
@@ -56,7 +48,7 @@ func ReadData(filename string) (chan domain.Result, error) {
 	go func() {
 		defer close(results)
 		for fileScanner.Scan() {
-			time.Sleep(time.Millisecond * 2000)
+			time.Sleep(time.Second * IntervalRequest)
 			product := strings.Split(string(fileScanner.Bytes()), ",")
 			res, err := makeRequest(product[0])
 			if err != nil {
@@ -103,11 +95,25 @@ func makeRequest(product string) (*domain.Result, error) {
 	for _, item := range sa.Items {
 
 		if item.Description == product {
+
+			img, err := images.Download(fmt.Sprintf("https://assets.sainsburys-groceries.co.uk/gol/%d/1/2365x2365.jpg", item.Sku))
+			if err != nil {
+				return nil, err
+			}
+
+			url, err = upload.Uploader(fmt.Sprintf("%d.jpg", item.Sku), img)
+			if err != nil {
+				log.Print(err)
+			}
+
 			log.Println(product)
 			return &domain.Result{
-				Product:   product,
-				Available: item.Store.Stock.OnHand,
-				NotFound:  false,
+				Product:            product,
+				SKU:                item.Sku,
+				InventoryAvailable: item.Store.Stock.OnHand,
+				URL:                url,
+				RetailPrice:        item.Store.RetailPrice,
+				NotFound:           false,
 			}, nil
 		}
 	}

@@ -6,8 +6,7 @@ import (
 	"net/http"
 )
 
-func Download() ([]byte, error) {
-	url := "http://i.imgur.com/m1UIjW1.jpg"
+func Download(url string) ([]byte, error) {
 
 	response, e := http.Get(url)
 	if e != nil {

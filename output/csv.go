@@ -41,7 +41,8 @@ func (w *WriterCSV) Output() error {
 			continue
 		}
 
-		_, err := w.file.WriteString(fmt.Sprintf("%s, %d\n", f.Product, int(f.Available)))
+		_, err := w.file.WriteString(fmt.Sprintf("%s, %d, %d, %f, %s\n",
+			f.Product, f.SKU, int(f.InventoryAvailable), f.RetailPrice, f.URL))
 		if err != nil {
 			return err
 		}

@@ -27,13 +27,20 @@ func connectAWS() *session.Session {
 	return sess
 }
 
-func Uploader(sku string, file []byte) error {
+func Uploader(filename string, file []byte) (string, error) {
 	uploader := s3manager.NewUploader(sess)
 
-	_, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(AWS_S3_BUCKET),
-		Key:    aws.String(sku),
-		Body:   bytes.NewReader(file),
+	output, err := uploader.Upload(&s3manager.UploadInput{
+		ContentType: aws.String("image/jpeg"),
+		ACL:         aws.String("public-read"),
+		Bucket:      aws.String(AWS_S3_BUCKET),
+		Key:         aws.String("imgs/" + filename),
+		Body:        bytes.NewReader(file),
 	})
-	return err
+
+	if err != nil {
+		return "", err
+	}
+
+	return output.Location, err
 }

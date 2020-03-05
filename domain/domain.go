@@ -4,8 +4,8 @@ type StoreAvailability struct {
 	Status string `json:"status"`
 	Items  []struct {
 		Store struct {
-			RetailPrice             float64    `json:"retailPrice"`
-			SupplyStatusDescription string `json:"supplyStatusDescription"`
+			RetailPrice             float64 `json:"retailPrice"`
+			SupplyStatusDescription string  `json:"supplyStatusDescription"`
 			Stock                   struct {
 				OnHand float64 `json:"onHand"`
 			} `json:"stock"`
@@ -29,7 +29,10 @@ type StoreAvailability struct {
 }
 
 type Result struct {
-	Product   string
-	Available float64
-	NotFound  bool
+	Product            string
+	SKU                int
+	InventoryAvailable float64
+	RetailPrice        float64
+	URL                string
+	NotFound           bool
 }
