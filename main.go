@@ -17,7 +17,7 @@ import (
 	"sainsburys-stock/upload"
 )
 
-const IntervalRequest = 5
+const IntervalRequest = 3
 
 func main() {
 
@@ -95,31 +95,45 @@ func makeRequest(product string) (*domain.Result, error) {
 	for _, item := range sa.Items {
 
 		if item.Description == product {
-
-			img, err := images.Download(fmt.Sprintf("https://assets.sainsburys-groceries.co.uk/gol/%d/1/2365x2365.jpg", item.Sku))
-			if err != nil {
-				return nil, err
-			}
-
-			url, err = upload.Uploader(fmt.Sprintf("%d.jpg", item.Sku), img)
-			if err != nil {
-				log.Print(err)
-			}
-
-			log.Println(product)
-			return &domain.Result{
-				Product:            product,
-				SKU:                item.Sku,
-				InventoryAvailable: item.Store.Stock.OnHand,
-				URL:                url,
-				RetailPrice:        item.Store.RetailPrice,
-				NotFound:           false,
-			}, nil
+			return processItem(item, false)
+		}
+		if strings.Contains(item.Description, product) {
+			return processItem(item, true)
+		}
+		if strings.Contains(product, item.Description) {
+			return processItem(item, true)
 		}
 	}
 
+	if len(sa.Items) > 0 {
+		item := sa.Items[0]
+		return processItem(item, true)
+	}
 	return &domain.Result{
 		Product:  product,
 		NotFound: true,
+	}, nil
+
+}
+
+func processItem(item domain.Item, approx bool) (*domain.Result, error) {
+	img, err := images.Download(fmt.Sprintf("https://assets.sainsburys-groceries.co.uk/gol/%d/1/2365x2365.jpg", item.Sku))
+	if err != nil {
+		return nil, err
+	}
+
+	url, err := upload.Uploader(fmt.Sprintf("%d.jpg", item.Sku), img)
+	if err != nil {
+		log.Print(err)
+	}
+
+	log.Println(item.Description)
+	return &domain.Result{
+		Product:            item.Description,
+		SKU:                item.Sku,
+		InventoryAvailable: item.Store.Stock.OnHand,
+		URL:                url,
+		RetailPrice:        item.Store.RetailPrice,
+		Approximated:       approx,
 	}, nil
 }
